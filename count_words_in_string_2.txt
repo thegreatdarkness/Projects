@@ -1,0 +1,3 @@
+Let's generate some random text for training purposes.
+It is quite interesting and fun to learn Python.
+Some additional words to check if program works.
