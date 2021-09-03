@@ -53,7 +53,7 @@ class Inventory:
         price = float(input("Input price: "))
         quantity = int(input("Input quantity in stock: "))
 
-        self_list_prod.append(
+        self.list_prod.append(
                                 {
                                     "Name": name,
                                     "Price": price,
@@ -74,7 +74,6 @@ class Inventory:
             return
 
         self.list_prod.remove(product_to_remove)
-
 
     def view_inventory(self):
         for prod in self.list_prod:
