@@ -16,7 +16,7 @@ class Employee:
 
 
 class HourlyEmployee(Employee):
-    hourly_emps = [{'Name': 'John White', 'Pay': 1440.0}, ]
+    hourly_emps = [{'Name': 'John White', 'Pay': 1440.0}, {'Name': 'Alice Fox', 'Pay': 1600.0}, ]
 
     def __init__(self, first, last, wage, num_hours):
         super().__init__(first, last)
@@ -88,12 +88,8 @@ class Company:
     action = None
 
     def __init__(self):
-        self.emps = {
-                     "Hourly": HourlyEmployee.hourly_emps,
-                     "Salaried": SalariedEmployee.salaried_emps,
-                     "Managers": Manager.managers,
-                     "Executives": Executive.executives
-                    }
+        self.emps = HourlyEmployee.hourly_emps + SalariedEmployee.salaried_emps + \
+                    Manager.managers + Executive.executives
 
     def hire_emp(self):
         emp_class = input("Enter Employee class (H/S/M/E): ")
@@ -143,12 +139,42 @@ class Company:
             print(fullname, "was added as Executive")
         else:
             print("Employee class not valid.")
+        self.emps = HourlyEmployee.hourly_emps + SalariedEmployee.salaried_emps \
+                    + Manager.managers + Executive.executives
         return self.emps
 
     def fire_emp(self):
-        emp = input("Employee name to remove:")
-        if emp in self.emps:
-            pass
+        found = False
+        fullname = input("Give fullname: ")
+        for emp in HourlyEmployee.hourly_emps:
+            if fullname in emp['Name']:
+                HourlyEmployee.hourly_emps.remove(emp)
+                found = True
+            else:
+                continue
+        for emp in SalariedEmployee.salaried_emps:
+            if fullname in emp['Name']:
+                SalariedEmployee.salaried_emps.remove(emp)
+                found = True
+            else:
+                continue
+        for emp in Manager.managers:
+            if fullname in emp['Name']:
+                Manager.managers.remove(emp)
+                found = True
+            else:
+                continue
+        for emp in Executive.executives:
+            if fullname in emp['Name']:
+                Executive.executives.remove(emp)
+                found = True
+            else:
+                continue
+        if found is False:
+            print("Employee not found")
+        self.emps = HourlyEmployee.hourly_emps + SalariedEmployee.salaried_emps + \
+                    Manager.managers + Executive.executives
+        return self.emps
 
     def give_raise(self):
         pass
@@ -188,14 +214,16 @@ class Company:
         company_income = int(input("Update company income: "))
         return company_income
 
-    @staticmethod
-    def get_details(fullname):
-        while True:
-            for dic in HourlyEmployee.hourly_emps:
-                for atr in dic:
-                if fullname in dic:
-
-
+    def get_details(self):
+        emps = self.emps
+        found = False
+        fullname = input("Give fullname: ")
+        for emp in emps:
+            if emp["Name"] == fullname:
+                print(emp)
+                found = True
+        if found is False:
+            print("Employee not found")
 
 
 def manage(Company):
@@ -212,6 +240,8 @@ def manage(Company):
             Company.update_income()
         elif action == '5':
             Company.view_emps()
+        elif action == '6':
+            Company.get_details()
         elif action == '7':
             break
         else:
