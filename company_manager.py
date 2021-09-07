@@ -5,7 +5,6 @@
 # employees. You should be able to hire, fire and raise employees.
 
 class Employee:
-
     def __init__(self, first, last):
         self.first = first
         self.last = last
@@ -16,12 +15,11 @@ class Employee:
 
 
 class HourlyEmployee(Employee):
-    hourly_emps = [{'Name': 'John White', 'Pay': 1440.0}, {'Name': 'Alice Fox', 'Pay': 1600.0}, ]
-
-    def __init__(self, first, last, wage, num_hours):
+    def __init__(self, first, last, wage, num_hours, raise_rate=1.1):
         super().__init__(first, last)
         self.wage = wage
         self.num_hours = num_hours
+        self.raise_rate = 1.1 if raise_rate is None else raise_rate
 
     def calc_pay(self):
         pay = float(self.wage * self.num_hours)
@@ -29,12 +27,11 @@ class HourlyEmployee(Employee):
 
 
 class SalariedEmployee(Employee):
-    salaried_emps = [{'Name': 'Alice Sam', 'Pay': 2000.0}, ]
-
-    def __init__(self, first, last, salary, num_period):
+    def __init__(self, first, last, salary, num_period=12, raise_rate=1.15):
         super().__init__(first, last)
         self.salary = salary
-        self.num_period = num_period
+        self.num_period = 12 if num_period is None else num_period
+        self.raise_rate = 1.15 if raise_rate is None else raise_rate
 
     def calc_pay(self):
         pay = float(self.salary // self.num_period)
@@ -42,214 +39,132 @@ class SalariedEmployee(Employee):
 
 
 class Manager(Employee):
-    managers = [{'Name': 'Kylie Smith', 'Pay': 5000}, ]
-    extra = None
-
-    def __init__(self, first, last, base):
+    def __init__(self, first, last, base, extra_rate=0.1, raise_rate=1.2):
         super().__init__(first, last)
         self.base = base
+        self.extra_rate = 0.1 if extra_rate is None else extra_rate
+        self.raise_rate = 1.2 if raise_rate is None else raise_rate
 
     def calc_extra(self):
-        self.extra = float(self.base * 0.10)
-        return self.extra
+        extra = float(self.base * self.extra_rate)
+        return extra
 
     def calc_pay(self):
-        pay = float(self.base + self.extra)
+        pay = float(self.base + self.calc_extra())
         return pay
 
 
 class Executive(Employee):
-    executives = [{'Name': 'Ping Zen', 'Pay': 10000}, ]
-    extra = None
-    bonus = None
-
-    def __init__(self, first, last, base):
+    def __init__(self, first, last, base, extra_rate=0.1, bonus_rate=0.01, raise_rate=1.25):
         super().__init__(first, last)
         self.base = base
+        self.extra_rate = 0.1 if extra_rate is None else extra_rate
+        self.bonus_rate = 0.01 if bonus_rate is None else bonus_rate
+        self.raise_rate = 1.25 if raise_rate is None else raise_rate
 
     def calc_extra(self):
-        self.extra = float(self.base * 0.20)
-        return self.extra
+        extra = float(self.base * self.extra_rate)
+        return extra
 
-    def calc_bonus(self):
-        self.bonus = float(0.01 * Company.company_income)
-        return self.bonus
+    def calc_bonus(self, company_income):
+        bonus = float(self.bonus_rate * company_income)
+        return bonus
 
-    def calc_pay(self):
-        pay = float(self.base + self.extra + self.bonus)
+    def calc_pay(self, company_income):
+        pay = float(self.base + self.calc_extra() + self.calc_bonus(company_income))
         return pay
 
 
 class Company:
-
     company_income = 1000000
 
-    emps = None
-    action = None
+    def __init__(self, company_name, initial_employees=[]):
+        self.name = company_name
+        self.employees = initial_employees
 
-    def __init__(self):
-        self.emps = HourlyEmployee.hourly_emps + SalariedEmployee.salaried_emps + \
-                    Manager.managers + Executive.executives
+    def hire_hourly_employee(self, first, last, wage, num_hours, raise_rate):
+        employee = HourlyEmployee(first, last, wage, num_hours, raise_rate)
+        self.employees.append(employee)
 
-    def hire_emp(self):
-        emp_class = input("Enter Employee class (H/S/M/E): ")
-        if emp_class == 'H':
-            HourlyEmployee.first = str(input("Enter first name: "))
-            HourlyEmployee.last = str(input("Enter last name: "))
-            HourlyEmployee.wage = int(input("Enter wage: "))
-            HourlyEmployee.num_hours = int(input("Enter number of hours: "))
-            emp = HourlyEmployee(HourlyEmployee.first, HourlyEmployee.last,
-                                 HourlyEmployee.wage, HourlyEmployee.num_hours)
-            fullname = HourlyEmployee.fullname(emp)
-            pay = HourlyEmployee.calc_pay(emp)
-            HourlyEmployee.hourly_emps.append({"Name": fullname, "Pay": pay})
-            print(fullname, "was added as Hourly employee")
-        elif emp_class == 'S':
-            SalariedEmployee.first = str(input("Enter first name: "))
-            SalariedEmployee.last = str(input("Enter last name: "))
-            SalariedEmployee.salary = int(input("Enter salary: "))
-            SalariedEmployee.num_periods = int(input("Enter number of periods: "))
-            emp = SalariedEmployee(SalariedEmployee.first, SalariedEmployee.last,
-                                   SalariedEmployee.salary, SalariedEmployee.num_periods)
-            fullname = SalariedEmployee.fullname(emp)
-            pay = SalariedEmployee.calc_pay(emp)
-            SalariedEmployee.salaried_emps.append({"Name": fullname, "Pay": pay})
-            print(fullname, "was added as Salaried employee")
-        elif emp_class == 'M':
-            Manager.first = str(input("Enter first name: "))
-            Manager.last = str(input("Enter last name: "))
-            Manager.base = int(input("Enter base: "))
-            emp = Manager(Manager.first, Manager.last, Manager.base)
-            fullname = Manager.fullname(emp)
-            Manager.calc_extra(emp)
-            pay = Manager.calc_pay(emp)
-            Manager.managers.append({"Name": fullname, "Pay": pay})
-            print(fullname, "was added as Manager")
-        elif emp_class == 'E':
-            Executive.first = input("Enter first name: ")
-            Executive.last = input("Enter last name: ")
-            Executive.base = input("Enter base: ")
+    def hire_salaried_employee(self, first, last, salary, num_period, raise_rate):
+        employee = SalariedEmployee(first, last, salary, num_period, raise_rate)
+        self.employees.append(employee)
 
-            emp = Executive(str(Executive.first), str(Executive.last), int(Executive.base))
-            fullname = Executive.fullname(emp)
-            Executive.calc_extra(emp)
-            Executive.calc_bonus(emp)
-            pay = Executive.calc_pay(emp)
-            Executive.executives.append({"Name": fullname, "Pay": pay})
-            print(fullname, "was added as Executive")
-        else:
-            print("Employee class not valid.")
-        self.emps = HourlyEmployee.hourly_emps + SalariedEmployee.salaried_emps \
-                    + Manager.managers + Executive.executives
-        return self.emps
+    def hire_manager(self, first, last, base, extra_rate, raise_rate):
+        employee = Manager(first, last, base, extra_rate, raise_rate)
+        self.employees.append(employee)
+
+    def hire_executive(self, first, last, base, extra_rate, bonus_rate, raise_rate):
+        employee = Executive(first, last, base, extra_rate, bonus_rate, raise_rate)
+        self.employees.append(employee)
 
     def fire_emp(self):
-        found = False
-        fullname = input("Give fullname: ")
-        for emp in HourlyEmployee.hourly_emps:
-            if fullname in emp['Name']:
-                HourlyEmployee.hourly_emps.remove(emp)
-                found = True
-            else:
-                continue
-        for emp in SalariedEmployee.salaried_emps:
-            if fullname in emp['Name']:
-                SalariedEmployee.salaried_emps.remove(emp)
-                found = True
-            else:
-                continue
-        for emp in Manager.managers:
-            if fullname in emp['Name']:
-                Manager.managers.remove(emp)
-                found = True
-            else:
-                continue
-        for emp in Executive.executives:
-            if fullname in emp['Name']:
-                Executive.executives.remove(emp)
-                found = True
-            else:
-                continue
-        if found is False:
-            print("Employee not found")
-        self.emps = HourlyEmployee.hourly_emps + SalariedEmployee.salaried_emps + \
-                    Manager.managers + Executive.executives
-        return self.emps
+        pass
 
     def give_raise(self):
         pass
 
-    @staticmethod
-    def view_emps():
-        hourly = HourlyEmployee.hourly_emps
-        hourly_lst = []
-        for item in hourly:
-            values = item.get("Name")
-            hourly_lst.append(values)
-        print("Hourly employees:", hourly_lst)
+    def view_emps(self):
+        pass
 
-        salaried = SalariedEmployee.salaried_emps
-        salaried_lst = []
-        for item in salaried:
-            values = item.get("Name")
-            salaried_lst.append(values)
-        print("Salaried employees:", salaried_lst)
-
-        managers = Manager.managers
-        managers_lst = []
-        for item in managers:
-            values = item.get("Name")
-            managers_lst.append(values)
-        print("Managers:", managers_lst)
-
-        executives = Executive.executives
-        executives_lst = []
-        for item in executives:
-            values = item.get("Name")
-            executives_lst.append(values)
-        print("Executives:", executives_lst)
-
-    @staticmethod
-    def update_income():
-        company_income = int(input("Update company income: "))
-        return company_income
+    def update_income(self):
+        pass
 
     def get_details(self):
-        emps = self.emps
-        found = False
-        fullname = input("Give fullname: ")
-        for emp in emps:
-            if emp["Name"] == fullname:
-                print(emp)
-                found = True
-        if found is False:
-            print("Employee not found")
+        pass
 
 
-def manage(Company):
-    while True:
-        action = input("Options: 1 - Hire, 2 - Fire, 3 - Give raise, 4 - Update income, "
-                       "5 - Employee list, 6 - Get details, 7 - Exit: ")
-        if action == '1':
-            Company.hire_emp()
-        elif action == '2':
-            Company.fire_emp()
-        elif action == '3':
-            Company.give_raise()
-        elif action == '4':
-            Company.update_income()
-        elif action == '5':
-            Company.view_emps()
-        elif action == '6':
-            Company.get_details()
-        elif action == '7':
-            break
-        else:
-            print("Option not valid.")
+def example_januszex():
+    family = [Executive('Jan', 'Kowalski', 10000), SalariedEmployee('Katarzyna', 'Kamyk', 50000, 12)]
+
+    hourly_employees = [{'first': 'John', 'last': 'White', 'wage': 15, 'hours': 240},
+                        {'first': 'Alice', 'last': 'Fox', 'wage': 20, 'hours': 200}]
+    salaried_employees = [{'first': 'Alice', 'last': 'Sam', 'salary': 40000},
+                          {'first': 'Maya', 'last': 'Wypok', 'salary': 42000, 'raise': 1.2}]
+    managers = [{'first': 'Kylie', 'last': 'Smith', 'base': 5000},
+                {'first': 'Samson', 'last': 'Kowalsky', 'base': 6000, 'extra': 0.15, 'raise': 1.22}]
+    executives = [{'first': 'Ping', 'last': 'Zen', 'base': 8500}]
+
+    januszex = Company(company_name='janusz-ex', initial_employees=family)
+
+    for employee in hourly_employees:
+        first = employee['first']
+        last = employee['last']
+        wage = employee['wage']
+        hours = employee['hours']
+        raise_rate = employee['raise'] if 'raise' in employee.keys() else None
+        januszex.hire_hourly_employee(first, last, wage, hours, raise_rate)
+
+    for employee in salaried_employees:
+        first = employee['first']
+        last = employee['last']
+        salary = employee['salary']
+        periods = employee['periods'] if 'periods' in employee.keys() else None
+        raise_rate = employee['raise'] if 'raise' in employee.keys() else None
+        januszex.hire_salaried_employee(first, last, salary, periods, raise_rate)
+
+    for employee in managers:
+        first = employee['first']
+        last = employee['last']
+        base = employee['base']
+        extra = employee['extra'] if 'extra' in employee.keys() else None
+        raise_rate = employee['raise'] if 'raise' in employee.keys() else None
+        januszex.hire_manager(first, last, base, extra, raise_rate)
+
+    for employee in executives:
+        first = employee['first']
+        last = employee['last']
+        base = employee['base']
+        extra = employee['extra'] if 'extra' in employee.keys() else None
+        bonus = employee['bonus'] if 'bonus' in employee.keys() else None
+        raise_rate = employee['raise'] if 'raise' in employee.keys() else None
+        januszex.hire_executive(first, last, base, extra, bonus, raise_rate)
+
+    return januszex
 
 
 def main():
-    manage(Company())
+    example_januszex()
 
 
 if __name__ == '__main__':
