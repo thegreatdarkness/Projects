@@ -4,6 +4,11 @@
 # an employee hierarchy, create a Company class that allows you to manage the
 # employees. You should be able to hire, fire and raise employees.
 
+import argparse
+import pandas as pd
+
+
+# Create base class Employee
 class Employee:
     def __init__(self, first, last):
         self.first = first
@@ -14,6 +19,7 @@ class Employee:
         return "{} {}".format(self.first, self.last)
 
 
+# Create subclass HourlyEmployee
 class HourlyEmployee(Employee):
     def __init__(self, first, last, wage, num_hours, raise_rate=1.1):
         super().__init__(first, last)
@@ -26,6 +32,7 @@ class HourlyEmployee(Employee):
         return pay
 
 
+# Create subclass SalariedEmployee
 class SalariedEmployee(Employee):
     def __init__(self, first, last, salary, num_period=12, raise_rate=1.15):
         super().__init__(first, last)
@@ -38,6 +45,7 @@ class SalariedEmployee(Employee):
         return pay
 
 
+# Create subclass Manager
 class Manager(Employee):
     def __init__(self, first, last, base, extra_rate=0.1, raise_rate=1.2):
         super().__init__(first, last)
@@ -54,6 +62,7 @@ class Manager(Employee):
         return pay
 
 
+# Create subclass Executive
 class Executive(Employee):
     def __init__(self, first, last, base, extra_rate=0.1, bonus_rate=0.01, raise_rate=1.25):
         super().__init__(first, last)
@@ -75,96 +84,157 @@ class Executive(Employee):
         return pay
 
 
+# Create class Company
 class Company:
+    # Set initial values: company_income, initial empty lists of employees
     company_income = 1000000
+    data_files = ['hourly.csv', 'salaried.csv', 'managers.csv', 'executives.csv']
+    hourly_employees = []
+    salaried_employees = []
+    managers = []
+    executives = []
 
-    def __init__(self, company_name, initial_employees=[]):
+    # Initialize class by defining company name and initial empty list of employees
+    def __init__(self, company_name):
         self.name = company_name
-        self.employees = initial_employees
+        self.employees = [self.hourly_employees, self.salaried_employees, self.managers, self.executives]
+
+    # Load data about employees from .csv files and create class objects for each employee
+    def load_data(self):
+
+        # Loop through .csv files and create class objects...
+        for file in self.data_files:
+            with open(file, encoding='utf-8-sig') as f:
+                # ...for hourly employees and append them to hourly_employees list
+                if file == 'hourly.csv':
+                    content = f.readlines()
+                    for line in content[1:]:
+                        item = line.rstrip('\n').split(',')
+                        employee = HourlyEmployee(item[0], item[1], item[2], item[3], float(item[4]))
+                        self.hourly_employees.append(employee)
+                # ...for salaried employees and append them to salaried_employees list
+                elif file == 'salaried.csv':
+                    content = f.readlines()
+                    for line in content[1:]:
+                        item = line.rstrip('\n').split(',')
+                        employee = SalariedEmployee(item[0], item[1], item[2], int(item[3]), float(item[4]))
+                        self.salaried_employees.append(employee)
+                # ...for managers and append them to managers list
+                elif file == 'managers.csv':
+                    content = f.readlines()
+                    for line in content[1:]:
+                        item = line.rstrip('\n').split(',')
+                        employee = Manager(item[0], item[1], item[2], float(item[3]), float(item[4]))
+                        self.managers.append(employee)
+                # ...for executives and append them to executives list
+                else:
+                    content = f.readlines()
+                    for line in content[1:]:
+                        item = line.rstrip('\n').split(',')
+                        employee = Executive(item[0], item[1], item[2], float(item[3]), float(item[4]), float(item[5]))
+                        self.executives.append(employee)
+            f.close()
+        return self.hourly_employees, self.salaried_employees, self.managers, self.executives
 
     def hire_hourly_employee(self, first, last, wage, num_hours, raise_rate):
         employee = HourlyEmployee(first, last, wage, num_hours, raise_rate)
-        self.employees.append(employee)
+        self.hourly_employees.append(employee)
 
     def hire_salaried_employee(self, first, last, salary, num_period, raise_rate):
         employee = SalariedEmployee(first, last, salary, num_period, raise_rate)
-        self.employees.append(employee)
+        self.salaried_employees.append(employee)
 
     def hire_manager(self, first, last, base, extra_rate, raise_rate):
         employee = Manager(first, last, base, extra_rate, raise_rate)
-        self.employees.append(employee)
+        self.salaried_employees.append(employee)
 
     def hire_executive(self, first, last, base, extra_rate, bonus_rate, raise_rate):
         employee = Executive(first, last, base, extra_rate, bonus_rate, raise_rate)
-        self.employees.append(employee)
+        self.salaried_employees.append(employee)
 
-    def fire_emp(self):
-        pass
+    # Fire employee: delete class object and remove from lists
+    def fire_employee(self, first, last):
+        for lst in self.employees:
+            for employee in lst:
+                if employee.first == first:
+                    if employee.last == last:
+                        lst.remove(employee)
+                        del employee
+                    else:
+                        continue
+                else:
+                    continue
+        return self.employees
 
     def give_raise(self):
         pass
 
-    def view_emps(self):
-        pass
+    # Print employees' names with distinction to employee subclass
+    @staticmethod
+    def print_employees_names():
+        print("Hourly employees:")
+        hourly = pd.read_csv('hourly.csv', encoding='utf-8-sig', usecols=['First name', 'Last name'])
+        hourly.index += 1
+        print(hourly)
+        print("Salaried employees:")
+        salaried = pd.read_csv('salaried.csv', encoding='utf-8-sig', usecols=['First name', 'Last name'])
+        salaried.index += 1
+        print(salaried)
+        print("Managers:")
+        managers = pd.read_csv('managers.csv', encoding='utf-8-sig', usecols=['First name', 'Last name'])
+        managers.index += 1
+        print(managers)
+        print("Executives:")
+        executives = pd.read_csv('executives.csv', encoding='utf-8-sig', usecols=['First name', 'Last name'])
+        executives.index += 1
+        print(executives)
 
-    def update_income(self):
+    def update_income(self, new_income):
         pass
 
     def get_details(self):
         pass
 
-
-def example_januszex():
-    family = [Executive('Jan', 'Kowalski', 10000), SalariedEmployee('Katarzyna', 'Kamyk', 50000, 12)]
-
-    hourly_employees = [{'first': 'John', 'last': 'White', 'wage': 15, 'hours': 240},
-                        {'first': 'Alice', 'last': 'Fox', 'wage': 20, 'hours': 200}]
-    salaried_employees = [{'first': 'Alice', 'last': 'Sam', 'salary': 40000},
-                          {'first': 'Maya', 'last': 'Wypok', 'salary': 42000, 'raise': 1.2}]
-    managers = [{'first': 'Kylie', 'last': 'Smith', 'base': 5000},
-                {'first': 'Samson', 'last': 'Kowalsky', 'base': 6000, 'extra': 0.15, 'raise': 1.22}]
-    executives = [{'first': 'Ping', 'last': 'Zen', 'base': 8500}]
-
-    januszex = Company(company_name='janusz-ex', initial_employees=family)
-
-    for employee in hourly_employees:
-        first = employee['first']
-        last = employee['last']
-        wage = employee['wage']
-        hours = employee['hours']
-        raise_rate = employee['raise'] if 'raise' in employee.keys() else None
-        januszex.hire_hourly_employee(first, last, wage, hours, raise_rate)
-
-    for employee in salaried_employees:
-        first = employee['first']
-        last = employee['last']
-        salary = employee['salary']
-        periods = employee['periods'] if 'periods' in employee.keys() else None
-        raise_rate = employee['raise'] if 'raise' in employee.keys() else None
-        januszex.hire_salaried_employee(first, last, salary, periods, raise_rate)
-
-    for employee in managers:
-        first = employee['first']
-        last = employee['last']
-        base = employee['base']
-        extra = employee['extra'] if 'extra' in employee.keys() else None
-        raise_rate = employee['raise'] if 'raise' in employee.keys() else None
-        januszex.hire_manager(first, last, base, extra, raise_rate)
-
-    for employee in executives:
-        first = employee['first']
-        last = employee['last']
-        base = employee['base']
-        extra = employee['extra'] if 'extra' in employee.keys() else None
-        bonus = employee['bonus'] if 'bonus' in employee.keys() else None
-        raise_rate = employee['raise'] if 'raise' in employee.keys() else None
-        januszex.hire_executive(first, last, base, extra, bonus, raise_rate)
-
-    return januszex
+    def save_exit(self):
+        # Update employees and individual lists
+        # pass lists into csv
+        pass
 
 
+# Example use case
 def main():
-    example_januszex()
+    company = Company(company_name='Janusz-ex')
+    company.load_data()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--hire_hourly', '-hh', help="Hire hourly employee", nargs=True)
+    parser.add_argument('--hire_salaried', '-hs', help="Hire salaried employee", nargs=True)
+    parser.add_argument('--hire_manager', '-hm', help="Hire manager", nargs=True)
+    parser.add_argument('--hire_executive', '-he', help="Hire executive", nargs=True)
+    parser.add_argument('--fire', '-f', help="Fire employee", nargs=True)
+    parser.add_argument('--raise', '-r', help="Give raise to employee")
+    parser.add_argument('--names', '-v', help="Print employees names' list")
+    parser.add_argument('--update_income', '-ui', help="Update company income", type=float)
+    parser.add_argument('--get_details', '-gd', help="Get details about employee")
+    args = parser.parse_args()
+    if args.hire_hourly:
+        company.hire_hourly_employee(*args.hire_hourly)
+    elif args.hire_salaried:
+        company.hire_salaried_employee(*args.hire_salaried)
+    elif args.hire_manager:
+        company.hire_manager(*args.hire_manager)
+    elif args.hire_executive:
+        company.hire_executive(*args.hire_executive)
+    elif args.fire:
+        company.fire_employee(*args.fire)
+    elif args.names:
+        company.print_employees_names()
+    elif args.update_income:
+        company.update_income(args.update_income)
+    elif args.get_details:
+        company.get_details()
+
+    return company
 
 
 if __name__ == '__main__':
